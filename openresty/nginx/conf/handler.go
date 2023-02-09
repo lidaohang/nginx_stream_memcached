@@ -111,7 +111,7 @@ while not ngx.worker.exiting() do
       				tcpsock:send("END" .. "\r\n") 
    			end
 		end
-	elseif "getrange" == name then
+	elseif "getrange" == name or "gets" == name then
 		local offset = tonumber(command[3])
 		local limit = tonumber(command[4])
 		local res, flags, err = memc:get(key)
@@ -120,9 +120,9 @@ while not ngx.worker.exiting() do
 			tcpsock:send("END" .. "\r\n")
                 else
 			if res and "table" ~= res then
-				local val = string.sub(res, offset+1, limit)
-				local length = limit > (#res - 2) and (#res - 2) or limit
-      				tcpsock:send("VALUE "..command[2].." 0 ".. length-offset .. "\r\n" .. val  .. "\r\nEND" .. "\r\n")
+				local count = limit == -1 and limit or offset+limit
+				local val = string.sub(res, offset+1, count)
+      				tcpsock:send("VALUE "..command[2].." 0 ".. #val .. "\r\n" .. val  .. "\r\nEND" .. "\r\n")
    			else
       				tcpsock:send("END" .. "\r\n") 
    			end
